@@ -32,6 +32,9 @@ public:
         return _previousBlockHash;
     }
 
+    // Calculate header hash.
+    HashBuffer GetHash() const;
+
     // Header serializer.
     friend std::ostream& operator<<(std::ostream& stream, const BlockHeader& header);
     // Header deserializer.
