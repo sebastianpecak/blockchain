@@ -6,11 +6,11 @@ using namespace std;
 
 void StringBlock::_UpdateDataHash()
 {
-    sha256_context ctx{};
+    sha256_context _ctx{};
 
-    sha256_init(&ctx);
-    sha256_hash(&ctx, (uint8_t*)_data.data(), _data.length());
-    sha256_done(&ctx, GetDataRootHash().Buffer());
+    sha256_init(&_ctx);
+    sha256_hash(&_ctx, (uint8_t*)_data.data(), _data.length());
+    sha256_done(&_ctx, GetDataRootHash().Buffer());
 }
 
 string StringBlock::Jsonize() const
