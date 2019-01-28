@@ -6,6 +6,7 @@
 class BaseBlock : public BlockHeader
 {
 public:
+    BaseBlock() = default;
     virtual ~BaseBlock() {}
 };
 

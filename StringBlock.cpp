@@ -49,3 +49,31 @@ std::istream& operator>>(std::istream& stream, StringBlock& block)
 
     return stream;
 }
+
+std::ostream & operator<<(std::ostream & stream, const StringBlockChain & chain)
+{
+    stream << chain.size();
+
+    for (const auto& i : chain)
+    {
+        stream << i;
+    }
+
+    return stream;
+}
+
+std::istream & operator>>(std::istream & stream, StringBlockChain & chain)
+{
+    size_t chainSize = 0;
+
+    stream >> chainSize;
+
+    chain.resize(chainSize);
+
+    for (auto& i : chain)
+    {
+        stream >> i;
+    }
+
+    return stream;
+}

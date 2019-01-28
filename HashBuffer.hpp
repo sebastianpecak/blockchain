@@ -9,9 +9,11 @@
 
 class HashBuffer : public IHexifiable, public IBase64able
 {
-    uint8_t _hash[HASH_BYTES_SIZE];
+    uint8_t _hash[HASH_BYTES_SIZE]{};
 
 public:
+    HashBuffer() = default;
+    HashBuffer(const HashBuffer&) = default;
     virtual ~HashBuffer() {}
     
     virtual std::string Hexify() const;

@@ -7,13 +7,13 @@
 #include <atomic>
 #include <limits>
 #include <algorithm>
+#include <tuple>
+#include <iomanip>
 
-#define SIGINIFICANT_ZEROS_NUMBER 32
+#define SIGINIFICANT_ZEROS_NUMBER 25
 #define THREADS_MULTIPLIER 2
 
 using namespace std;
-
-static atomic<bool> hashFound = false;
 
 string BlockHeader::Jsonize() const
 {
@@ -63,21 +63,44 @@ bool BlockHeader::IsValid() const
 }
 
 bool BlockHeader::_IsHashFound(const std::vector<uint8_t>& serializedHeader)
+//tuple<bool, HashBuffer> BlockHeader::_IsHashFound(const std::vector<uint8_t>& serializedHeader)
 {
     HashBuffer result{};
+    sha256_context ctx{};
 
-    sha256_hash(&_ctx, serializedHeader.data(), serializedHeader.size());
-    sha256_done(&_ctx, result.Buffer());
+    sha256_init(&ctx);
+    sha256_hash(&ctx, serializedHeader.data(), serializedHeader.size());
+    sha256_done(&ctx, result.Buffer());
 
     const uint64_t mask = UINT64_MAX << SIGINIFICANT_ZEROS_NUMBER;
     const uint64_t front = *(uint64_t*)result.Buffer();
 
-    return (front & mask) == front;
+    const bool found = (front & mask) == front;
+
+    if (found)
+    {
+        _Log("Hash found: %s", result.Hexify().c_str());
+    }
+
+    return found;
+    //return make_tuple(found, result);
+}
+
+ostream& operator<<(ostream& stream, const vector<uint8_t>& bytes)
+{
+    for (const auto& i : bytes)
+    {
+        stream /*<< "0x"*/ << setfill('0') << setw(2) << hex << (int)i /*<< " "*/;
+    }
+
+    stream << endl;
+
+    return stream;
 }
 
 void BlockHeader::_FindHashThread(uint32_t nonceStart, uint32_t range)
 {
-    cout << "THREAD STARTED, ID: " << this_thread::get_id() << endl;
+    _Log("Thread started, nonceStart: %u, range: %u", nonceStart, range);
 
     const size_t previousSize = _previousBlockHash.Size();
     const size_t dataSize = _dataRootHash.Size();
@@ -89,23 +112,55 @@ void BlockHeader::_FindHashThread(uint32_t nonceStart, uint32_t range)
     memcpy(serializedHeader.data(), _previousBlockHash.Buffer(), previousSize);
     memcpy(serializedHeader.data() + previousSize, _dataRootHash.Buffer(), dataSize);
 
-    do
+    bool foundHash = false;
+    for (;;)
     {
         // Serialize nonce.
         memcpy(serializedHeader.data() + nonceOffset, &nonceStart, nonceSize);
+
+        foundHash = _IsHashFound(serializedHeader);
+
+        if (foundHash)
+        {
+            // Notify threads to stop seeking.
+            _hashFound.store(true);
+            _nonce = nonceStart;
+            break;
+        }
+
         ++nonceStart;
         --range;
-    } while (!_IsHashFound(serializedHeader) && range > 0 && !hashFound);
 
-    if (_IsHashFound(serializedHeader))
-    {
-        hashFound = true;
-        cout << "HASH FOUND FOR NONCE: " << nonceStart << ", THREAD ID: " << this_thread::get_id() << endl;
+        if (range == 0 || _hashFound.load())
+        {
+            break;
+        }
     }
-    else
+
+    //bool found = false;
+    ////tuple<bool, HashBuffer> res{};
+    //do
+    //{
+    //    // Serialize nonce.
+    //    memcpy(serializedHeader.data() + nonceOffset, &nonceStart, nonceSize);
+    //    ++nonceStart;
+    //    --range;
+    //    res = _IsHashFound(serializedHeader);
+    //} while (!get<0>(res)/*!_IsHashFound(serializedHeader)*/ && range > 0 && !_hashFound.load());
+
+    //string aaa = get<1>(res).Hexify();
+
+    //string bbb = get<1>(_IsHashFound(serializedHeader)).Hexify();
+
+    /*if (foundHash)
     {
-        cout << "ENDING " << this_thread::get_id() << " THREAD" << endl;
-    }
+        _Log("Hash found for nonce: %u", nonceStart);
+        _nonce = nonceStart;
+    }*/
+    /*else
+    {
+        _Log("Hash was not found");
+    }*/
 }
 
 void BlockHeader::Validate()
@@ -113,10 +168,13 @@ void BlockHeader::Validate()
     size_t tries = 0;
     _UpdateDataHash();
 
-    uint32_t threadsNo = thread::hardware_concurrency() * THREADS_MULTIPLIER;
-    uint32_t rangePerThread = numeric_limits<uint32_t>::max() / threadsNo;
+    const size_t threadsNo = thread::hardware_concurrency() * THREADS_MULTIPLIER;
+    const size_t typeCapacity = numeric_limits<uint32_t>::max();
+    const size_t rangePerThread = (typeCapacity + 1) / threadsNo;
 
     vector<thread> threads{};
+
+    _hashFound.store(false);
 
     for (uint32_t threadID = 0; threadID < threadsNo; ++threadID)
     {
@@ -124,6 +182,8 @@ void BlockHeader::Validate()
     }
 
     for_each(threads.begin(), threads.end(), [](thread& t) {t.join(); });
+
+    cout << "THREADS JOINED" << endl;
 
     //auto startTime = chrono::high_resolution_clock::now();
 

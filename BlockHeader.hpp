@@ -6,27 +6,53 @@
 #include <iostream>
 #include <vector>
 #include <sha256.h>
+#include <atomic>
+#include <mutex>
+#include <thread>
+#include <tuple>
 
 class BlockHeader : public IJsonable
 {
     HashBuffer _previousBlockHash{};
     HashBuffer _dataRootHash{};
     uint32_t _nonce = 0;
-
-    sha256_context _ctx{};
+    std::atomic_bool _hashFound = false;
+    std::mutex _logMutex{};
+    std::vector<std::thread::id> ids{};
 
 protected:
-    BlockHeader()
-    {
-        sha256_init(&_ctx);
-    }
-
     virtual void _UpdateDataHash() {}
 
     void _FindHashThread(uint32_t nonceStart, uint32_t range);
-    bool _IsHashFound(const std::vector<uint8_t>& serializedHeader);
+    bool/*std::tuple<bool, HashBuffer>*/ _IsHashFound(const std::vector<uint8_t>& serializedHeader);
+    
+    template<typename... T>
+    void _Log(const std::string& format, T&&... args)
+    {
+        std::lock_guard<std::mutex> lock(_logMutex);
+
+        size_t i = 0;
+        bool found = false;
+        for (; i < ids.size(); ++i)
+        {
+            if (ids[i] == this_thread::get_id())
+            {
+                break;
+            }
+        }
+
+        if (!found)
+        {
+            ids.push_back(this_thread::get_id());
+            ++i;
+        }
+
+        printf(("%*.c[%.08u]: " + format + "\n").c_str(), i, ' ', this_thread::get_id(), args...);
+    }
 
 public:
+    BlockHeader() = default;
+    BlockHeader(const BlockHeader&) = default;
     virtual ~BlockHeader() {}
 
     virtual std::string Jsonize() const;
