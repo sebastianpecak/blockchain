@@ -6,6 +6,7 @@
 #include <cstdint>
 
 #define HASH_BYTES_SIZE 32
+#define HASH_BITS 256
 
 class HashBuffer : public IHexifiable, public IBase64able
 {

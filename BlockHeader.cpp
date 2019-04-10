@@ -10,8 +10,8 @@
 #include <tuple>
 #include <iomanip>
 
-#define SIGINIFICANT_ZEROS_NUMBER 25
-#define THREADS_MULTIPLIER 2
+#define SIGINIFICANT_ZEROS_NUMBER 32
+#define THREADS_MULTIPLIER 16
 
 using namespace std;
 
@@ -184,6 +184,11 @@ void BlockHeader::Validate()
     for_each(threads.begin(), threads.end(), [](thread& t) {t.join(); });
 
     cout << "THREADS JOINED" << endl;
+
+    if (!IsValid())
+    {
+        cout << "Could not find HASH." << endl;
+    }
 
     //auto startTime = chrono::high_resolution_clock::now();
 

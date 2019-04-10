@@ -47,7 +47,7 @@ protected:
             ++i;
         }
 
-        printf(("%*.c[%.08u]: " + format + "\n").c_str(), i, ' ', this_thread::get_id(), args...);
+        printf(("%*.c[%.08u]: " + format + "\n").c_str(), i, ' ', this_thread::get_id(), std::forward<T&&>(args)...);
     }
 
 public:
