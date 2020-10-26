@@ -1,7 +1,7 @@
 #include "BlockHeader.hpp"
 #include <sstream>
 #include <vector>
-#include <sha256.h>
+//#include <sha256.h>
 #include <chrono>
 #include <thread>
 #include <atomic>
@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <tuple>
 #include <iomanip>
+#include <cstring>
 
 #define SIGINIFICANT_ZEROS_NUMBER 32
 #define THREADS_MULTIPLIER 16
@@ -66,11 +67,11 @@ bool BlockHeader::_IsHashFound(const std::vector<uint8_t>& serializedHeader)
 //tuple<bool, HashBuffer> BlockHeader::_IsHashFound(const std::vector<uint8_t>& serializedHeader)
 {
     HashBuffer result{};
-    sha256_context ctx{};
+    //sha256_context ctx{};
 
-    sha256_init(&ctx);
-    sha256_hash(&ctx, serializedHeader.data(), serializedHeader.size());
-    sha256_done(&ctx, result.Buffer());
+    //sha256_init(&ctx);
+    //sha256_hash(&ctx, serializedHeader.data(), serializedHeader.size());
+    //sha256_done(&ctx, result.Buffer());
 
     const uint64_t mask = UINT64_MAX << SIGINIFICANT_ZEROS_NUMBER;
     const uint64_t front = *(uint64_t*)result.Buffer();
@@ -226,11 +227,11 @@ HashBuffer BlockHeader::GetHash() const
     memcpy(serializedHeader.data() + previousSize, _dataRootHash.Buffer(), dataSize);
     memcpy(serializedHeader.data() + previousSize + dataSize, &_nonce, nonceSize);
 
-    sha256_context _ctx{};
+    //sha256_context _ctx{};
 
-    sha256_init(&_ctx);
-    sha256_hash(&_ctx, serializedHeader.data(), serializedHeader.size());
-    sha256_done(&_ctx, result.Buffer());
+    //sha256_init(&_ctx);
+    //sha256_hash(&_ctx, serializedHeader.data(), serializedHeader.size());
+    //sha256_done(&_ctx, result.Buffer());
 
     return result;
 }

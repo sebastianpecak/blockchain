@@ -1,5 +1,5 @@
 #include "HashBuffer.hpp"
-#include <base64.h>
+//#include <base64.h>
 
 using namespace std;
 
@@ -20,9 +20,9 @@ string HashBuffer::Hexify() const
 
 string HashBuffer::Base64ize() const
 {
-    string result(BASE64_ENCODE_OUT_SIZE(HASH_BYTES_SIZE), '0');
+    //string result(BASE64_ENCODE_OUT_SIZE(HASH_BYTES_SIZE), '0');
 
-    base64_encode(_hash, sizeof(_hash), &result[0]);
+    //base64_encode(_hash, sizeof(_hash), &result[0]);
 
-    return result;
+    return "";//result;
 }

@@ -5,7 +5,7 @@
 #include "HashBuffer.hpp"
 #include <iostream>
 #include <vector>
-#include <sha256.h>
+//#include <sha256.h>
 #include <atomic>
 #include <mutex>
 #include <thread>
@@ -16,7 +16,7 @@ class BlockHeader : public IJsonable
     HashBuffer _previousBlockHash{};
     HashBuffer _dataRootHash{};
     uint32_t _nonce = 0;
-    std::atomic_bool _hashFound = false;
+    std::atomic_bool _hashFound;
     std::mutex _logMutex{};
     std::vector<std::thread::id> ids{};
 
@@ -35,7 +35,7 @@ protected:
         bool found = false;
         for (; i < ids.size(); ++i)
         {
-            if (ids[i] == this_thread::get_id())
+            if (ids[i] == std::this_thread::get_id())
             {
                 break;
             }
@@ -43,11 +43,11 @@ protected:
 
         if (!found)
         {
-            ids.push_back(this_thread::get_id());
+            ids.push_back(std::this_thread::get_id());
             ++i;
         }
 
-        printf(("%*.c[%.08u]: " + format + "\n").c_str(), i, ' ', this_thread::get_id(), std::forward<T&&>(args)...);
+        printf(("%*.c[%.08u]: " + format + "\n").c_str(), i, ' ', std::this_thread::get_id(), std::forward<T&&>(args)...);
     }
 
 public:
