@@ -3,6 +3,9 @@
 
 #include <string>
 
+/**
+ * Interface for implementing method that returns data codded in Json format.
+ */
 class IJsonable
 {
 public:

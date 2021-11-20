@@ -5,36 +5,37 @@
 #include "IBase64able.hpp"
 #include <cstdint>
 
-#define HASH_BYTES_SIZE 32
-#define HASH_BITS 256
-
+/**
+ * Class that stores and operates hash.
+ */
 class HashBuffer : public IHexifiable, public IBase64able
 {
-    uint8_t _hash[HASH_BYTES_SIZE]{};
+    /**
+     * Size of hash buffer in bytes.
+     */
+    constexpr static size_t HASH_SIZE_IN_BYTES = 32;
+    /**
+     * Raw hash buffer.
+     */
+    uint8_t _hash[HASH_SIZE_IN_BYTES];
 
 public:
-    HashBuffer() = default;
-    HashBuffer(const HashBuffer&) = default;
-    virtual ~HashBuffer() {}
-    
+    /**
+     * Returns hash converted to hex and base64.
+     */
     virtual std::string Hexify() const;
     virtual std::string Base64ize() const;
 
-    inline uint8_t* Buffer()
-    {
-        return _hash;
-    }
+    // inline const uint8_t* Buffer() const
+    // {
+    //     return _hash;
+    // }
 
-    inline const uint8_t* Buffer() const
-    {
-        return _hash;
-    }
-
-    // Returns hash bytes-span.
-    inline size_t Size() const
-    {
-        return sizeof(_hash);
-    }
+    // // Returns hash bytes-span.
+    // inline size_t Size() const
+    // {
+    //     return sizeof(_hash);
+    // }
 };
 
 #endif  // HASHBUFFER_HPP

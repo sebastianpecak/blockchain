@@ -3,6 +3,9 @@
 
 #include <string>
 
+/**
+ * Interface for implementing method that returns data base64 codded.
+ */
 class IBase64able
 {
 public:

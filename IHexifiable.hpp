@@ -3,6 +3,9 @@
 
 #include <string>
 
+/**
+ * Interface for implementing method that returns data codded hexadecimal.
+ */
 class IHexifiable
 {
 public:

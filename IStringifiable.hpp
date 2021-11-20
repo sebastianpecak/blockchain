@@ -3,6 +3,9 @@
 
 #include <string>
 
+/**
+ * Interface for implementing method that returns stringified data.
+ */
 class IStringifiable
 {
 public:
